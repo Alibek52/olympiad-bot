@@ -65,11 +65,18 @@ async def delete_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 if __name__ == '__main__':
     webhook_url = f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME') or 'olympiad-bot.onrender.com'}/{TOKEN}"
-    application.bot.set_webhook(webhook_url)
+    
+    import asyncio
+    try:
+        asyncio.run(application.bot.set_webhook(webhook_url))
+    except RuntimeError:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(application.bot.set_webhook(webhook_url))
 
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-)
+
+
 
 
 @app.route(f"/{TOKEN}", methods=["POST"])
@@ -97,5 +104,9 @@ application.add_handler(CommandHandler("stat", stat))
 application.add_handler(CommandHandler("deleteall", delete_all))
 
 if __name__ == '__main__':
+    webhook_url = f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME') or 'olympiad-bot.onrender.com'}/{TOKEN}"
+    application.bot.set_webhook(webhook_url)
+
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
