@@ -8,7 +8,7 @@ from telegram.ext import (
 from openpyxl import Workbook, load_workbook
 
 # Этот токен будет из переменной окружения
-TOKEN = os.getenv("BOT_TOKEN")
+TOKEN = os.getenv("TOKEN")
 bot = Bot(token=TOKEN)
 app = Flask(__name__)
 application = Application.builder().token(TOKEN).build()
