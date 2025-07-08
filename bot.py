@@ -16,7 +16,7 @@ app = Flask(__name__)
 application = Application.builder().token(TOKEN).build()
 
 LANGUAGE, MAIN_MENU = range(2)
-ADMINS = [6504169287]  # Админ Telegram ID
+ADMINS = [6504169287]
 user_data = {}
 
 LANGUAGE_TEXTS = {
@@ -25,7 +25,6 @@ LANGUAGE_TEXTS = {
     "en": "✅ Language selected. Please press /start to begin."
 }
 
-# /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [
@@ -40,7 +39,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return LANGUAGE
 
-# Язык выбран
 async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -50,24 +48,17 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.edit_message_text(LANGUAGE_TEXTS[lang_code])
     return MAIN_MENU
 
-# Админ панель
 async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id in ADMINS:
         await update.message.reply_text("👮 Админ панель:\n/stat - Кол-во пользователей\n/deleteall - Очистить данные")
-
-
-/stat — Кол-во пользователей
-/deleteall — Очистить данные")
     else:
         await update.message.reply_text("⛔ У вас нет доступа.")
 
-# Статистика
 async def stat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id in ADMINS:
         count = len(user_data)
         await update.message.reply_text(f"👥 Пользователей: {count}")
 
-# Удаление всех данных
 async def delete_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id in ADMINS:
         user_data.clear()
