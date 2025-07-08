@@ -6,42 +6,41 @@ from telegram.ext import (
     ConversationHandler, MessageHandler, filters, ContextTypes
 )
 from openpyxl import Workbook, load_workbook
+from dotenv import load_dotenv
 
-# Этот токен будет из переменной окружения
+load_dotenv()
 TOKEN = os.getenv("TOKEN")
+
 bot = Bot(token=TOKEN)
 app = Flask(__name__)
 application = Application.builder().token(TOKEN).build()
 
-# === Константы ===
 LANGUAGE, MAIN_MENU = range(2)
-ADMINS = [6504169287]  # Telegram ID админов
-
-# === Языковые настройки ===
-LANGUAGE_TEXTS = {
-    "uz": "Илтимос, бослаш учун /start буюриғини босинг",
-    "ru": "Пожалуйста, нажмите /start для начала",
-    "en": "Please press /start to begin",
-}
-
+ADMINS = [6504169287]  # Админ Telegram ID
 user_data = {}
 
-# === Обработчик /start ===
+LANGUAGE_TEXTS = {
+    "uz": "✅ Til tanlandi. Iltimos, /start buyrug'ini bosing.",
+    "ru": "✅ Язык выбран. Пожалуйста, нажмите /start для начала.",
+    "en": "✅ Language selected. Please press /start to begin."
+}
+
+# /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [
             InlineKeyboardButton("🇷🇺 Русский", callback_data="lang_ru"),
-            InlineKeyboardButton("🇷🇺 Uzbek", callback_data="lang_uz"),
+            InlineKeyboardButton("🇺🇿 O'zbek", callback_data="lang_uz"),
             InlineKeyboardButton("🇬🇧 English", callback_data="lang_en")
         ]
     ]
     await update.message.reply_text(
-        "Тилни танланг / Choose language / Выберите язык",
+        "🌐 Выберите язык / Tilni tanlang / Choose a language:",
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
     return LANGUAGE
 
-# === Обработчик языка ===
+# Язык выбран
 async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -51,20 +50,32 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.edit_message_text(LANGUAGE_TEXTS[lang_code])
     return MAIN_MENU
 
-# === Админ-панель ===
+# Админ панель
 async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id in ADMINS:
-        await update.message.reply_text("Админ панель: \n/stat - Статистика")
+        await update.message.reply_text("👮 Админ панель:
+/stat — Кол-во пользователей
+/deleteall — Очистить данные")
     else:
-        await update.message.reply_text("У вас нет доступа")
+        await update.message.reply_text("⛔ У вас нет доступа.")
 
-# === Статистика ===
+# Статистика
 async def stat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id in ADMINS:
         count = len(user_data)
-        await update.message.reply_text(f"Общее число пользователей: {count}")
+        await update.message.reply_text(f"👥 Пользователей: {count}")
 
-# === Фласк-сервер ===
+# Удаление всех данных
+async def delete_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id in ADMINS:
+        user_data.clear()
+        await update.message.reply_text("✅ Все данные удалены.")
+
+@app.before_first_request
+def set_webhook():
+    webhook_url = f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME') or 'olympiad-bot.onrender.com'}/{TOKEN}"
+    bot.set_webhook(webhook_url)
+
 @app.route(f"/{TOKEN}", methods=["POST"])
 def webhook():
     update = Update.de_json(request.get_json(force=True), bot)
@@ -75,22 +86,20 @@ def webhook():
 def index():
     return "Bot ishlayapti!"
 
-# === Конверсация ===
 conv_handler = ConversationHandler(
     entry_points=[CommandHandler("start", start)],
     states={
-        LANGUAGE: [CallbackQueryHandler(set_language)],
+        LANGUAGE: [CallbackQueryHandler(set_language)]
     },
     fallbacks=[],
     per_user=True
 )
 
-# === Регистрация ===
 application.add_handler(conv_handler)
 application.add_handler(CommandHandler("admin", admin_panel))
 application.add_handler(CommandHandler("stat", stat))
+application.add_handler(CommandHandler("deleteall", delete_all))
 
-# === Запуск ===
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
