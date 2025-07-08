@@ -63,10 +63,14 @@ async def delete_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_data.clear()
         await update.message.reply_text("✅ Все данные удалены.")
 
-@app.before_first_request
-def set_webhook():
+if __name__ == '__main__':
     webhook_url = f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME') or 'olympiad-bot.onrender.com'}/{TOKEN}"
     application.bot.set_webhook(webhook_url)
+
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+)
+
 
 @app.route(f"/{TOKEN}", methods=["POST"])
 def webhook():
