@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Bot
 from telegram.ext import (
@@ -6,14 +7,15 @@ from telegram.ext import (
 )
 from openpyxl import Workbook, load_workbook
 
-TOKEN = "7723375117:AAF_mVLldYm-01G3r9A-26eV3GGnEg6-yEQ"  # <-- вставь сюда СВОЙ ТОКЕН
+# 🔐 Прямо вставленный токен (небезопасно для публичных проектов!)
+TOKEN = "7723375117:AAF_mVLldYm-01G3r9A-26eV3GGnEg6-yEQ"
 
 bot = Bot(token=TOKEN)
 app = Flask(__name__)
 application = Application.builder().token(TOKEN).build()
 
 LANGUAGE, MAIN_MENU = range(2)
-ADMINS = [6504169287]  # <-- замените на свой Telegram user ID
+ADMINS = [6504169287]
 user_data = {}
 
 LANGUAGE_TEXTS = {
@@ -47,7 +49,11 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id in ADMINS:
-        await update.message.reply_text("👮 Админ панель:\n/stat - Кол-во пользователей\n/deleteall - Очистить данные")
+        await update.message.reply_text(
+            "👮 Админ панель:\n"
+            "/stat - Кол-во пользователей\n"
+            "/deleteall - Очистить данные"
+        )
     else:
         await update.message.reply_text("⛔ У вас нет доступа.")
 
@@ -61,6 +67,10 @@ async def delete_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_data.clear()
         await update.message.reply_text("✅ Все данные удалены.")
 
+def set_webhook():
+    webhook_url = f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME') or 'olympiad-bot.onrender.com'}/{TOKEN}"
+    application.bot.set_webhook(webhook_url)
+
 @app.route(f"/{TOKEN}", methods=["POST"])
 def webhook():
     update = Update.de_json(request.get_json(force=True), bot)
@@ -69,11 +79,7 @@ def webhook():
 
 @app.route("/")
 def index():
-    return "Bot ishlayapti!"
-
-def set_webhook():
-    webhook_url = f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME') or 'olympiad-bot.onrender.com'}/{TOKEN}"
-    application.bot.set_webhook(webhook_url)
+    return "🤖 Бот работает!"
 
 conv_handler = ConversationHandler(
     entry_points=[CommandHandler("start", start)],
