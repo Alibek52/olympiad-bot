@@ -64,17 +64,21 @@ async def delete_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("✅ Все данные удалены.")
 
 if __name__ == '__main__':
-    webhook_url = f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME') or 'olympiad-bot.onrender.com'}/{TOKEN}"
-    
     import asyncio
-    try:
-        asyncio.run(application.bot.set_webhook(webhook_url))
-    except RuntimeError:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(application.bot.set_webhook(webhook_url))
+    import time
 
+    async def run():
+        webhook_url = f"https://olympiad-bot.onrender.com/{TOKEN}"
+        await application.bot.set_webhook(webhook_url)
+        print(f"Webhook set to: {webhook_url}")
+
+    asyncio.run(run())
+
+    # Даем Flask немного времени и запускаем
+    time.sleep(1)
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
 
 
 
