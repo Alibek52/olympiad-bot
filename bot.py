@@ -53,7 +53,8 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Админ панель
 async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id in ADMINS:
-        await update.message.reply_text("👮 Админ панель:\n/stat — Кол-во пользователей\n/deleteall — Очистить данные")
+        await update.message.reply_text("👮 Админ панель:\n/stat - Кол-во пользователей\n/deleteall - Очистить данные")
+
 
 /stat — Кол-во пользователей
 /deleteall — Очистить данные")
